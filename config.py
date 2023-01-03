@@ -1,0 +1,4 @@
+W_WIDTH = 1920
+W_HEIGHT = 1080
+FPS = 60
+ASSETS_DIR = 'data'
