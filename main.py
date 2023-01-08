@@ -13,6 +13,16 @@ class Health(pygame.sprite.Sprite):
         self.image = self.image.convert_alpha()
         self.rect = self.rect.move(x, 5)
 
+class Furniture(pygame.sprite.Sprite):
+    def __init__(self, image1, image2, image3, x, y):
+        super().__init__(furniture)
+        self.image = random.choice([image1, image2, image3])
+        self.rect = self.image.get_rect()
+        self.hp = 5
+        self.image = self.image.convert_alpha()
+        self.rect = self.rect.move(x, y)
+
+
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet_w, sheet_d, sheet_u, columns, rows, x, y):
         super().__init__(player)
@@ -51,7 +61,6 @@ class AnimatedSprite(pygame.sprite.Sprite):
             else:
                 Health(load_image('hpplus.png'), hp_x)
 
-
         self.tp2 = self.tp1
         self.view += 1
         if self.view % 10 == 0:
@@ -67,7 +76,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.right = False
             self.rect.x -= V / FPS
-            if pygame.sprite.spritecollideany(self, walls):
+            if pygame.sprite.spritecollideany(self, walls) or pygame.sprite.spritecollideany(self, furniture):
                 self.rect.x += V / FPS
         elif arg == 2:
             self.tp1 = 0
@@ -75,17 +84,17 @@ class AnimatedSprite(pygame.sprite.Sprite):
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.right = True
             self.rect.x += V / FPS
-            if pygame.sprite.spritecollideany(self, walls):
+            if pygame.sprite.spritecollideany(self, walls) or pygame.sprite.spritecollideany(self, furniture):
                 self.rect.x -= V / FPS
         elif arg == 3:
             self.tp1 = 2
             self.rect.y -= V / FPS
-            if pygame.sprite.spritecollideany(self, walls):
+            if pygame.sprite.spritecollideany(self, walls) or pygame.sprite.spritecollideany(self, furniture):
                 self.rect.y += V / FPS
         elif arg == 4:
             self.tp1 = 1
             self.rect.y += V / FPS
-            if pygame.sprite.spritecollideany(self, walls):
+            if pygame.sprite.spritecollideany(self, walls) or pygame.sprite.spritecollideany(self, furniture):
                 self.rect.y -= V / FPS
         if self.tp2 != self.tp1:
             if self.tp1 == 0:
@@ -242,14 +251,20 @@ class Board:
         self.cell_size = cell_size
 
     def render(self):
+        random_floors = []
         for cell_y in range(self.height):
             for cell_x in range(self.width):
                 x = self.left + self.cell_size * cell_x
                 y = self.top + self.cell_size * cell_y
                 if self.board[cell_y][cell_x] == 0:
                     Floor(all_sprite, x, y)
+                    random_floors.append((x + 2, y + 2))
                 if self.board[cell_y][cell_x] == 1:
                     Wall(walls, x, y)
+        for i in range(10):
+            x, y = random.choice(random_floors)
+            Furniture(load_image('chair.png'), load_image('dresser.png'), load_image('table.png'), x, y)
+
 
 
 clock = pygame.time.Clock()
@@ -257,6 +272,7 @@ walls = pygame.sprite.Group()
 all_sprite = pygame.sprite.Group()
 health = pygame.sprite.Group()
 player = pygame.sprite.Group()
+furniture = pygame.sprite.Group()
 board = Board()
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
@@ -281,6 +297,7 @@ while running:
     screen.fill(pygame.Color('black'))
     all_sprite.draw(screen)
     walls.draw(screen)
+    furniture.draw(screen)
     all_sprite.update()
     player.draw(screen)
     clock.tick(FPS)
