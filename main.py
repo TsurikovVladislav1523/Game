@@ -33,6 +33,9 @@ class AnimatedSprite(pygame.sprite.Sprite):
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, rect.size)))
 
+    def coords(self):
+        return self.rect.left, self.rect.top
+
     def update(self, arg):
         self.tp2 = self.tp1
         self.view += 1
@@ -85,6 +88,84 @@ class AnimatedSprite(pygame.sprite.Sprite):
                 self.cur_frame = 0
                 self.image = self.frames[self.cur_frame]
                 self.image = self.image.convert_alpha()
+
+
+class AnimatedSpriteZombi(pygame.sprite.Sprite):
+    def __init__(self, sheet_w, columns, rows, x, y, group, x0, y0, x1, y1):
+        super().__init__(group)
+        # x0, x1, y0, y1 координаты комнаты, в которой находится зомби
+        self.x0 = x0
+        self.y0 = y0
+        self.x1 = x1
+        self.y1 = y1
+        self.frames = []
+        self.sheet_w = sheet_w
+        self.cut_sheet(sheet_w, columns, rows)
+        self.view = 0
+        self.right = True
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.image = self.image.convert_alpha()
+        self.rect = pygame.Rect(0, 0, 30, 38)
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.frames.clear()
+        rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                           sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (rect.w * i, rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, rect.size)))
+
+    def update(self):
+        RECT_X, RECT_Y = p.coords()
+        self.view += 1
+        if self.view % 3 == 0:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = self.frames[self.cur_frame]
+            self.image = self.image.convert_alpha()
+        # если персонаж не в комнате, зомби ходит туда-сюда
+        if not (self.x0 <= RECT_X <= self.x1 and self.y0 <= RECT_Y <= self.y1):
+            come_to_room = False
+            if self.right:
+                self.rect.x += V / FPS
+            if not self.right:
+                self.rect.x -= V / FPS
+                if pygame.sprite.spritecollideany(self, walls):
+                    self.image = pygame.transform.flip(self.image, True, False)
+                    self.right = True
+                    self.rect.x += V / FPS
+            if pygame.sprite.spritecollideany(self, walls) and self.right:
+                self.image = pygame.transform.flip(self.image, True, False)
+                self.right = False
+        # условия отслеживания координат и движения зомби к персонажу, если тот зашел к комнату
+        elif self.x0 <= RECT_X <= self.x1 and self.y0 <= RECT_Y <= self.y1:
+            come_to_room = True
+            if self.rect.x != RECT_X and self.rect.y != RECT_Y:
+                if self.rect.x > RECT_X and self.rect.y > RECT_Y:
+                    self.rect.x -= 1
+                    self.rect.y -= 1
+                elif self.rect.x < RECT_X and self.rect.y < RECT_Y:
+                    self.rect.x += 1
+                    self.rect.y += 1
+                elif self.rect.x < RECT_X and self.rect.y > RECT_Y:
+                    self.rect.x += 1
+                    self.rect.y -= 1
+                elif self.rect.x > RECT_X and self.rect.y < RECT_Y:
+                    self.rect.x -= 1
+                    self.rect.y += 1
+            elif self.rect.y != RECT_Y:
+                if self.rect.y < RECT_Y:
+                    self.rect.y += 1
+                elif self.rect.y > RECT_Y:
+                    self.rect.y -= 1
+            elif self.rect.x != RECT_X:
+                if self.rect.x < RECT_X:
+                    self.rect.x += 1
+                elif self.rect.x > RECT_X:
+                    self.rect.x -= 1
 
 
 size = width, height = W_WIDTH, W_HEIGHT
@@ -161,6 +242,8 @@ player = pygame.sprite.Group()
 board = Board()
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
+z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, all_sprite, 320, 40, 760, 1080)
+z2 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 240, all_sprite, 320, 40, 760, 1080)
 
 running = True
 while running:
