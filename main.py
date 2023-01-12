@@ -94,6 +94,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
 class AnimatedSpriteZombi(pygame.sprite.Sprite):
     def __init__(self, sheet_w, columns, rows, x, y, group, x0, y0, x1, y1):
         super().__init__(group)
+        self.come_to_room = False
         # x0, x1, y0, y1 координаты комнаты, в которой находится зомби
         self.x0 = x0
         self.y0 = y0
@@ -109,6 +110,7 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         self.image = self.image.convert_alpha()
         self.rect = pygame.Rect(0, 0, 30, 38)
         self.rect = self.rect.move(x, y)
+        self.x, self.y = x, y
 
     def cut_sheet(self, sheet, columns, rows):
         self.frames.clear()
@@ -129,17 +131,18 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
             self.image = self.image.convert_alpha()
         if not (self.x0 <= rect_x <= self.x1 and self.y0 <= rect_y <= self.y1):
             if self.right:
-                self.rect.x += V / FPS
+                self.rect.x += 2
             if not self.right:
-                self.rect.x -= V / FPS
+                self.rect.x -= 2
                 if pygame.sprite.spritecollideany(self, walls):
                     self.image = pygame.transform.flip(self.image, True, False)
                     self.right = True
-                    self.rect.x += V / FPS
+                    self.rect.x += 2
             if pygame.sprite.spritecollideany(self, walls) and self.right:
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.right = False
-        else:
+        elif self.x0 <= rect_x <= self.x1 and self.y0 <= rect_y <= self.y1:
+            self.come_to_room = True
             if self.rect.x != rect_x and self.rect.y != rect_y:
                 if self.rect.x > rect_x and self.rect.y > rect_y:
                     self.rect.x -= 1
@@ -162,6 +165,30 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
                 if self.rect.x < rect_x:
                     self.rect.x += 1
                 elif self.rect.x > rect_x:
+                    self.rect.x -= 1
+        if not (self.x0 <= rect_x <= self.x1 and self.y0 <= rect_y <= self.y1) and self.come_to_room:
+            if self.rect.x != self.x and self.rect.y != self.y:
+                if self.rect.x > self.x and self.rect.y > self.y:
+                    self.rect.x -= 1
+                    self.rect.y -= 1
+                elif self.rect.x < self.x and self.rect.y < self.y:
+                    self.rect.x += 1
+                    self.rect.y += 1
+                elif self.rect.x < self.x and self.rect.y > self.y:
+                    self.rect.x += 1
+                    self.rect.y -= 1
+                elif self.rect.x > self.x and self.rect.y < self.y:
+                    self.rect.x -= 1
+                    self.rect.y += 1
+            elif self.rect.y != self.y:
+                if self.rect.y < self.y:
+                    self.rect.y += 1
+                elif self.rect.y > self.y:
+                    self.rect.y -= 1
+            elif self.rect.x != self.x:
+                if self.rect.x < self.x:
+                    self.rect.x += 1
+                elif self.rect.x > self.x:
                     self.rect.x -= 1
 
 
@@ -239,7 +266,7 @@ player = pygame.sprite.Group()
 board = Board()
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
-z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, all_sprite, 0, 0, 1920, 1080)
+z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 360, 40, all_sprite, 360, 40, 600, 320)
 # z2 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 140, all_sprite)
 
 running = True
