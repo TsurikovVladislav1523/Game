@@ -32,16 +32,16 @@ class Gun():
         self.damage = LEVEL_DAMAGE[current_level]
         self.range = LEVEL_RANGE[current_level]
         self.reload = LEVEL_RELOAD[current_level]
-        self.shot_t = 0
+        self.shot_t = 250
 
     def shot(self):
-        self.shot_t = 0
         zomb = pygame.sprite.spritecollideany(cur, monsters)
         if zomb:
             if ((zomb.rect.center[1] - p.rect.center[1]) ** 2 + (
-                    zomb.rect.center[0] - p.rect.center[0]) ** 2) ** 0.5 <= self.range:
+                    zomb.rect.center[0] - p.rect.center[0]) ** 2) ** 0.5 <= self.range and self.shot_t >= self.reload:
                 zomb.hp -= self.damage
                 cursor1.update(pygame.mouse.get_pos(), change=True)
+                self.shot_t = 0
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
@@ -73,14 +73,16 @@ class AnimatedSprite(pygame.sprite.Sprite):
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, rect.size)))
 
-    def update(self, arg):
+    def update(self, arg, heal=False):
         hp_x = 1072
-        for i in range(8):
-            hp_x += 40
-            if i >= self.hp:
-                Health(load_image('hpmin.png'), hp_x)
-            else:
-                Health(load_image('hpplus.png'), hp_x)
+        if heal:
+            health.empty()
+            for i in range(8):
+                hp_x += 40
+                if i >= self.hp:
+                    Health(load_image('hpmin.png'), hp_x)
+                else:
+                    Health(load_image('hpplus.png'), hp_x)
 
         self.tp2 = self.tp1
         self.view += 1
@@ -176,6 +178,7 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         # урон от соприкосновения
         if pygame.sprite.collide_mask(self, p):
             p.hp -= 1
+            p.update(0, heal=True)
         rect_x, rect_y = p.coords()
         self.view += 1
         if self.view % 10 == 0:
@@ -274,8 +277,8 @@ def load_image(name, color_key=None):
 
 
 class Mos(pygame.sprite.Sprite):
-    image = pygame.image.load('data/сrosshair.png')
-    image_red = pygame.image.load('data/crosshair_red.png')
+    image = load_image('crosshair.png')
+    image_red = load_image('crosshair_red.png')
     images = [image, image_red]
 
     def __init__(self, group, x, y):
@@ -290,7 +293,7 @@ class Mos(pygame.sprite.Sprite):
 
     def update(self, pos, change=False):
         gun.shot_t += 1
-        if gun.shot_t >=120:
+        if gun.shot_t >= 120:
             self.image = self.images[0]
         if change:
             self.im_n += 1
@@ -300,7 +303,7 @@ class Mos(pygame.sprite.Sprite):
 
 
 class Wall(pygame.sprite.Sprite):
-    image = pygame.image.load('data/wall1.png')
+    image = load_image('wall1.png')
 
     def __init__(self, group, x, y):
         super().__init__(group)
@@ -367,6 +370,7 @@ gun = Gun()
 cur = Mos(cursor1, 500, 500)
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
+p.update(0, heal=True)
 z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, monsters, 240, 40, 880, 400)
 # z2 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 140, all_sprite)
 

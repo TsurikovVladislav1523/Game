@@ -1,3 +1,13 @@
+import random
+
+import pygame
+import os
+import sys
+from config import *
+from classes.help_f import *
+from classes.starting import *
+
+
 class AnimatedSpriteZombi(pygame.sprite.Sprite):
     def __init__(self, sheet_w, columns, rows, x, y, group, x0, y0, x1, y1):
         super().__init__(group)
@@ -16,6 +26,8 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
         self.image = self.image.convert_alpha()
         self.rect = pygame.Rect(0, 0, 30, 38)
+        self.speedx = 1
+        self.speedy = 1
         self.rect = self.rect.move(x, y)
 
     def cut_sheet(self, sheet, columns, rows):
@@ -34,6 +46,7 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         # урон от соприкосновения
         if pygame.sprite.collide_mask(self, p):
             p.hp -= 1
+            p.update(0, heal=True)
         rect_x, rect_y = p.coords()
         self.view += 1
         if self.view % 10 == 0:
@@ -41,17 +54,31 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
             self.image = self.frames[self.cur_frame]
             self.image = self.image.convert_alpha()
         if not (self.x0 <= rect_x <= self.x1 and self.y0 <= rect_y <= self.y1):
-            if self.right:
-                self.rect.x += V / FPS
-            if not self.right:
-                self.rect.x -= V / FPS
-                if pygame.sprite.spritecollideany(self, walls):
-                    self.image = pygame.transform.flip(self.image, True, False)
-                    self.right = True
-                    self.rect.x += V / FPS
-            if pygame.sprite.spritecollideany(self, walls) and self.right:
-                self.image = pygame.transform.flip(self.image, True, False)
-                self.right = False
+            self.rect.x += self.speedx
+            self.rect.y += self.speedy
+            if self.rect.right >= self.x1:
+                self.speedx -= 2
+            if self.rect.left <= self.x0:
+                self.speedx += 2
+            if self.rect.top >= self.y0:
+                self.speedy -= 2
+            if self.rect.bottom <= self.y1:
+                self.speedy += 2
+            #     if pygame.sprite.spritecollideany(self, walls):
+            #         self.image = pygame.transform.flip(self.image, True, False)
+            #         self.rect.x -= 1
+            #         self.rect.y -= 1
+            # if self.right:
+            #     self.rect.x += V / FPS
+            # if not self.right:
+            #     self.rect.x -= V / FPS
+            #     if pygame.sprite.spritecollideany(self, walls):
+            #         self.image = pygame.transform.flip(self.image, True, False)
+            #         self.right = True
+            #         self.rect.x += V / FPS
+            # if pygame.sprite.spritecollideany(self, walls) and self.right:
+            #     self.image = pygame.transform.flip(self.image, True, False)
+            #     self.right = False
         else:
             if self.rect.x != rect_x and self.rect.y != rect_y:
                 if self.rect.x > rect_x and self.rect.y > rect_y:
