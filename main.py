@@ -2,7 +2,10 @@ import random
 
 import pygame
 import os
+import sys
 from config import *
+
+current_level = '1'
 
 
 class Health(pygame.sprite.Sprite):
@@ -13,6 +16,7 @@ class Health(pygame.sprite.Sprite):
         self.image = self.image.convert_alpha()
         self.rect = self.rect.move(x, 5)
 
+
 class Furniture(pygame.sprite.Sprite):
     def __init__(self, image1, image2, image3, x, y):
         super().__init__(furniture)
@@ -21,6 +25,23 @@ class Furniture(pygame.sprite.Sprite):
         self.hp = 5
         self.image = self.image.convert_alpha()
         self.rect = self.rect.move(x, y)
+
+
+class Gun():
+    def __init__(self):
+        self.damage = LEVEL_DAMAGE[current_level]
+        self.range = LEVEL_RANGE[current_level]
+        self.reload = LEVEL_RELOAD[current_level]
+        self.shot_t = 0
+
+    def shot(self):
+        self.shot_t = 0
+        zomb = pygame.sprite.spritecollideany(cur, monsters)
+        if zomb:
+            if ((zomb.rect.center[1] - p.rect.center[1]) ** 2 + (
+                    zomb.rect.center[0] - p.rect.center[0]) ** 2) ** 0.5 <= self.range:
+                zomb.hp -= self.damage
+                cursor1.update(pygame.mouse.get_pos(), change=True)
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
@@ -124,6 +145,7 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         self.x0 = x0
         self.y0 = y0
         self.x1 = x1
+        self.hp = 4
         self.y1 = y1
         self.frames = []
         self.sheet_w = sheet_w
@@ -147,6 +169,8 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
                     frame_location, rect.size)))
 
     def update(self):
+        if self.hp == 0:
+            self.kill()
         # урон от соприкосновения
         if pygame.sprite.collide_mask(self, p):
             p.hp -= 1
@@ -194,8 +218,30 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
                     self.rect.x -= 1
 
 
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def start_screen():
+    fon = pygame.transform.scale(load_image('logo.png'), (W_WIDTH, W_HEIGHT))
+    screen.blit(fon, (0, 0))
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == 768 or \
+                    event.type == 1025:
+                return None
+            pygame.display.flip()
+            clock.tick(FPS)
+
+
 size = width, height = W_WIDTH, W_HEIGHT
 screen = pygame.display.set_mode(size)
+
+pygame.mouse.set_visible(False)
 
 
 def load_image(name, color_key=None):
@@ -209,6 +255,32 @@ def load_image(name, color_key=None):
     else:
         image = image.convert_alpha()
     return image
+
+
+class Mos(pygame.sprite.Sprite):
+    image = pygame.image.load('data/crosshair.png')
+    image_red = pygame.image.load('data/crosshair_red.png')
+    images = [image, image_red]
+
+    def __init__(self, group, x, y):
+        super().__init__(group)
+        self.im_n = 0
+        self.image = Mos.images[self.im_n]
+        self.image = self.image.convert_alpha()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, pos, change=False):
+        gun.shot_t += 1
+        if gun.shot_t >=120:
+            self.image = self.images[0]
+        if change:
+            self.im_n += 1
+            print(self.im_n % 2)
+            self.image = self.images[self.im_n % 2]
+        self.rect.center = pos
 
 
 class Wall(pygame.sprite.Sprite):
@@ -225,7 +297,7 @@ class Wall(pygame.sprite.Sprite):
 
 
 class Floor(pygame.sprite.Sprite):
-    image = pygame.image.load('data/floor1.png')
+    image = load_image('floor1.png')
 
     def __init__(self, group, x, y):
         super().__init__(group)
@@ -266,24 +338,31 @@ class Board:
             Furniture(load_image('chair.png'), load_image('dresser.png'), load_image('table.png'), x, y)
 
 
-
 clock = pygame.time.Clock()
 walls = pygame.sprite.Group()
 all_sprite = pygame.sprite.Group()
+cursor1 = pygame.sprite.Group()
 health = pygame.sprite.Group()
 player = pygame.sprite.Group()
 furniture = pygame.sprite.Group()
+monsters = pygame.sprite.Group()
 board = Board()
+gun = Gun()
+cur = Mos(cursor1, 500, 500)
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
-z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, all_sprite, 0, 0, 1920, 1080)
+z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, monsters, 0, 0, 1920, 1080)
 # z2 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 140, all_sprite)
 
 running = True
+start_screen()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                gun.shot()
     pressed_k = pygame.key.get_pressed()
     if pressed_k[pygame.K_a]:
         player.update(1)
@@ -298,10 +377,13 @@ while running:
     all_sprite.draw(screen)
     walls.draw(screen)
     furniture.draw(screen)
-    all_sprite.update()
+    monsters.update()
     player.draw(screen)
-    clock.tick(FPS)
+    monsters.draw(screen)
+    cursor1.update(pygame.mouse.get_pos())
+    cursor1.draw(screen)
     health.draw(screen)
+    clock.tick(FPS)
     pygame.display.flip()
 
 pygame.quit()
