@@ -156,6 +156,8 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
         self.image = self.image.convert_alpha()
         self.rect = pygame.Rect(0, 0, 30, 38)
+        self.speedx = 1
+        self.speedy = 1
         self.rect = self.rect.move(x, y)
 
     def cut_sheet(self, sheet, columns, rows):
@@ -181,17 +183,31 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
             self.image = self.frames[self.cur_frame]
             self.image = self.image.convert_alpha()
         if not (self.x0 <= rect_x <= self.x1 and self.y0 <= rect_y <= self.y1):
-            if self.right:
-                self.rect.x += V / FPS
-            if not self.right:
-                self.rect.x -= V / FPS
-                if pygame.sprite.spritecollideany(self, walls):
-                    self.image = pygame.transform.flip(self.image, True, False)
-                    self.right = True
-                    self.rect.x += V / FPS
-            if pygame.sprite.spritecollideany(self, walls) and self.right:
-                self.image = pygame.transform.flip(self.image, True, False)
-                self.right = False
+            self.rect.x += self.speedx
+            self.rect.y += self.speedy
+            if self.rect.right >= self.x1:
+                self.speedx -= 2
+            if self.rect.left <= self.x0:
+                self.speedx += 2
+            if self.rect.top >= self.y0:
+                self.speedy -= 2
+            if self.rect.bottom <= self.y1:
+                self.speedy += 2
+            #     if pygame.sprite.spritecollideany(self, walls):
+            #         self.image = pygame.transform.flip(self.image, True, False)
+            #         self.rect.x -= 1
+            #         self.rect.y -= 1
+            # if self.right:
+            #     self.rect.x += V / FPS
+            # if not self.right:
+            #     self.rect.x -= V / FPS
+            #     if pygame.sprite.spritecollideany(self, walls):
+            #         self.image = pygame.transform.flip(self.image, True, False)
+            #         self.right = True
+            #         self.rect.x += V / FPS
+            # if pygame.sprite.spritecollideany(self, walls) and self.right:
+            #     self.image = pygame.transform.flip(self.image, True, False)
+            #     self.right = False
         else:
             if self.rect.x != rect_x and self.rect.y != rect_y:
                 if self.rect.x > rect_x and self.rect.y > rect_y:
@@ -223,19 +239,19 @@ def terminate():
     sys.exit()
 
 
-def start_screen():
-    fon = pygame.transform.scale(load_image('logo.png'), (W_WIDTH, W_HEIGHT))
-    screen.blit(fon, (0, 0))
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            if event.type == 768 or \
-                    event.type == 1025:
-                return None
-            pygame.display.flip()
-            clock.tick(FPS)
+# def start_screen():
+#     fon = pygame.transform.scale(load_image('logo.png'), (W_WIDTH, W_HEIGHT))
+#     screen.blit(fon, (0, 0))
+#
+#     while True:
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 terminate()
+#             if event.type == 768 or \
+#                     event.type == 1025:
+#                 return None
+#             pygame.display.flip()
+#             clock.tick(FPS)
 
 
 size = width, height = W_WIDTH, W_HEIGHT
@@ -258,7 +274,7 @@ def load_image(name, color_key=None):
 
 
 class Mos(pygame.sprite.Sprite):
-    image = pygame.image.load('data/crosshair.png')
+    image = pygame.image.load('data/сrosshair.png')
     image_red = pygame.image.load('data/crosshair_red.png')
     images = [image, image_red]
 
@@ -351,11 +367,11 @@ gun = Gun()
 cur = Mos(cursor1, 500, 500)
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
-z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, monsters, 0, 0, 1920, 1080)
+z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, monsters, 240, 40, 880, 400)
 # z2 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 140, all_sprite)
 
 running = True
-start_screen()
+# start_screen()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
