@@ -159,7 +159,8 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         self.rect = pygame.Rect(0, 0, 30, 38)
         self.speedx = 1
         self.speedy = 1
-        self.count = 0 # для отстлеживания ударов о мебель
+        # для отстлеживания ударов о мебель
+        self.count = 0
         self.rect = self.rect.move(tp[2], tp[3])
 
     def cut_sheet(self, sheet, columns, rows):
@@ -190,8 +191,9 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
             if pygame.sprite.spritecollideany(self, furniture):
                 self.count += 1
                 self.speedx = -self.speedx
-                if self.count > 2:
+                if self.count > 1:
                     self.speedy = -self.speedy
+                    self.speedx = -self.speedx
                     self.count = 0
             if self.rect.right >= self.x1:
                 self.speedx -= 2
@@ -298,7 +300,7 @@ class Mos(pygame.sprite.Sprite):
 
     def update(self, pos, change=False):
         gun.shot_t += 1
-        if gun.shot_t >=120:
+        if gun.shot_t >= 120:
             self.image = self.images[0]
         if change:
             self.im_n += 1
