@@ -80,6 +80,7 @@ class Smoke(pygame.sprite.Sprite):
             self.image = self.image.convert_alpha()
         self.rect.center = (pos[0] - 5, pos[1])
 
+
 class New_game(pygame.sprite.Sprite):
     image1 = load_image('new.png')
     image_ch = load_image('new_ch.png')
@@ -387,6 +388,7 @@ def terminate():
     pygame.quit()
     sys.exit()
 
+
 class Mos(pygame.sprite.Sprite):
     image = load_image('crosshair.png')
     image_red = load_image('crosshair_red.png')
@@ -441,7 +443,7 @@ class Board:
     def __init__(self):  # параметры -- количество клеток по ширине и высоте
         self.width = 48
         self.height = 27
-        self.board = level2
+        self.board = level1
         self.left = 0  # x верхнего левого угла поля
         self.top = 0  # у левого верхнего угла
         self.cell_size = 40
