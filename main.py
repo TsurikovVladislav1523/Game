@@ -7,6 +7,51 @@ from config import *
 
 current_level = '1'
 
+size = width, height = W_WIDTH, W_HEIGHT
+screen = pygame.display.set_mode(size)
+
+
+def load_image(name, color_key=None):
+    fullname = os.path.join(ASSETS_DIR, name)
+    image = pygame.image.load(fullname)
+    if color_key is not None:
+        image = image.convert()
+        if color_key == -1:
+            color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+class New_game(pygame.sprite.Sprite):
+    image1 = load_image('new.png')
+    image_ch = load_image('new_ch.png')
+
+    def __init__(self, new):
+        super().__init__(new)
+        self.image = self.image1
+        self.rect = self.image.get_rect()
+        self.image = self.image.convert_alpha()
+        self.rect.center = (960, 650)
+
+    def update(self, cur_image):
+        self.image = cur_image
+
+
+class Save_im(pygame.sprite.Sprite):
+    image1 = load_image('save.png')
+    image_ch = load_image('save_ch.png')
+
+    def __init__(self, save):
+        super().__init__(save)
+        self.image = self.image1
+        self.rect = self.image.get_rect()
+        self.rect.center = (960, 300)
+
+    def update(self, cur_image):
+        self.image = cur_image
+
 
 class Health(pygame.sprite.Sprite):
     def __init__(self, image, x):
@@ -25,6 +70,37 @@ class Furniture(pygame.sprite.Sprite):
         self.hp = 5
         self.image = self.image.convert_alpha()
         self.rect = self.rect.move(x, y)
+
+
+def start_screen():
+    fon = pygame.transform.scale(load_image('logo.png'), (W_WIDTH, W_HEIGHT))
+    screen.blit(fon, (0, 0))
+    save = pygame.sprite.Group()
+    new = pygame.sprite.Group()
+    save1 = Save_im(save)
+    new1 = New_game(new)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if save1.rect.collidepoint(pygame.mouse.get_pos()):
+                    return None
+                elif new1.rect.collidepoint(pygame.mouse.get_pos()):
+                    return None
+            if save1.rect.collidepoint(pygame.mouse.get_pos()):
+                save.update(load_image('save_ch.png'))
+            elif new1.rect.collidepoint(pygame.mouse.get_pos()):
+                new.update(load_image('new_ch.png'))
+            else:
+                new.update(load_image('new.png'))
+                save.update(load_image('save.png'))
+
+            save.draw(screen)
+            new.draw(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
 
 
 class Gun():
@@ -242,40 +318,6 @@ def terminate():
     sys.exit()
 
 
-# def start_screen():
-#     fon = pygame.transform.scale(load_image('logo.png'), (W_WIDTH, W_HEIGHT))
-#     screen.blit(fon, (0, 0))
-#
-#     while True:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 terminate()
-#             if event.type == 768 or \
-#                     event.type == 1025:
-#                 return None
-#             pygame.display.flip()
-#             clock.tick(FPS)
-
-
-size = width, height = W_WIDTH, W_HEIGHT
-screen = pygame.display.set_mode(size)
-
-pygame.mouse.set_visible(False)
-
-
-def load_image(name, color_key=None):
-    fullname = os.path.join(ASSETS_DIR, name)
-    image = pygame.image.load(fullname)
-    if color_key is not None:
-        image = image.convert()
-        if color_key == -1:
-            color_key = image.get_at((0, 0))
-        image.set_colorkey(color_key)
-    else:
-        image = image.convert_alpha()
-    return image
-
-
 class Mos(pygame.sprite.Sprite):
     image = load_image('crosshair.png')
     image_red = load_image('crosshair_red.png')
@@ -375,7 +417,8 @@ z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, monsters, 240, 
 # z2 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 140, all_sprite)
 
 running = True
-# start_screen()
+start_screen()
+pygame.mouse.set_visible(False)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
