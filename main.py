@@ -139,17 +139,18 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 class AnimatedSpriteZombi(pygame.sprite.Sprite):
-    def __init__(self, sheet_w, columns, rows, x, y, group, x0, y0, x1, y1):
+    def __init__(self, sheet_w, group, tp):
+        # columns, rows, x, y, , x0, y0, x1, y1
         super().__init__(group)
         # x0, x1, y0, y1 координаты комнаты, в которой находится зомби
-        self.x0 = x0
-        self.y0 = y0
-        self.x1 = x1
+        self.x0 = tp[4]
+        self.y0 = tp[5]
+        self.x1 = tp[6]
+        self.y1 = tp[7]
         self.hp = 4
-        self.y1 = y1
         self.frames = []
         self.sheet_w = sheet_w
-        self.cut_sheet(sheet_w, columns, rows)
+        self.cut_sheet(sheet_w, tp[0], tp[1])
         self.view = 0
         self.right = True
         self.cur_frame = 0
@@ -158,7 +159,8 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         self.rect = pygame.Rect(0, 0, 30, 38)
         self.speedx = 1
         self.speedy = 1
-        self.rect = self.rect.move(x, y)
+        self.count = 0 # для отстлеживания ударов о мебель
+        self.rect = self.rect.move(tp[2], tp[3])
 
     def cut_sheet(self, sheet, columns, rows):
         self.frames.clear()
@@ -185,6 +187,12 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         if not (self.x0 <= rect_x <= self.x1 and self.y0 <= rect_y <= self.y1):
             self.rect.x += self.speedx
             self.rect.y += self.speedy
+            if pygame.sprite.spritecollideany(self, furniture):
+                self.count += 1
+                self.speedx = -self.speedx
+                if self.count > 2:
+                    self.speedy = -self.speedy
+                    self.count = 0
             if self.rect.right >= self.x1:
                 self.speedx -= 2
             if self.rect.left <= self.x0:
@@ -328,7 +336,7 @@ class Board:
     def __init__(self):  # параметры -- количество клеток по ширине и высоте
         self.width = 48
         self.height = 27
-        self.board = level1
+        self.board = level2
         self.left = 0  # x верхнего левого угла поля
         self.top = 0  # у левого верхнего угла
         self.cell_size = 40
@@ -367,8 +375,8 @@ gun = Gun()
 cur = Mos(cursor1, 500, 500)
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
-z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, monsters, 240, 40, 880, 400)
-# z2 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 140, all_sprite)
+for elem in level2_zombi:
+    z = AnimatedSpriteZombi(load_image("zombi.png"), monsters, elem)
 
 running = True
 # start_screen()
