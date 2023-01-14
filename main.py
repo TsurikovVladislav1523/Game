@@ -5,7 +5,7 @@ import os
 import sys
 from config import *
 
-current_level = '1'
+current_level = 'level1'
 
 size = width, height = W_WIDTH, W_HEIGHT
 screen = pygame.display.set_mode(size)
@@ -23,6 +23,61 @@ def load_image(name, color_key=None):
         image = image.convert_alpha()
     return image
 
+
+class Gates(pygame.sprite.Sprite):
+    open = load_image('opendoor.png')
+    close = load_image('closedoor.png')
+
+    def __init__(self):
+        super().__init__(gates)
+        self.image = self.close
+        self.kills = False
+        self.rect = self.image.get_rect()
+        self.image = self.image.convert_alpha()
+        self.rect = self.rect.move(LEVEL_GATES[current_level])
+
+    def update(self):
+        self.kills = True
+        self.image = self.open
+
+
+class Smoke(pygame.sprite.Sprite):
+    def __init__(self, sheet_w, columns, rows, pos):
+        super().__init__(smokes)
+        self.frames = []
+        self.sheet_d = sheet_w
+        self.cut_sheet(sheet_w, columns, rows)
+        self.view = 0
+        self.tp1 = 0
+        self.right = True
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.image = self.image.convert_alpha()
+        self.rect = pygame.Rect(0, 0, 30, 38)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.center = (pos[0] - 5, pos[1])
+        self.hp = 2
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.frames.clear()
+        rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                           sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (rect.w * i, rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, rect.size)))
+
+    def update(self, pos):
+        self.view += 1
+        if self.cur_frame + 1 == len(self.frames):
+            self.kill()
+            return None
+        if self.view % 3 == 0:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = self.frames[self.cur_frame]
+            self.image = self.image.convert_alpha()
+        self.rect.center = (pos[0] - 5, pos[1])
 
 class New_game(pygame.sprite.Sprite):
     image1 = load_image('new.png')
@@ -111,6 +166,8 @@ class Gun():
         self.shot_t = 250
 
     def shot(self):
+        smokes.empty()
+        Smoke(load_image('smoke1.png'), 12, 1, p.rect.center)
         zomb = pygame.sprite.spritecollideany(cur, monsters)
         if zomb:
             if ((zomb.rect.center[1] - p.rect.center[1]) ** 2 + (
@@ -195,6 +252,8 @@ class AnimatedSprite(pygame.sprite.Sprite):
             self.rect.y += V / FPS
             if pygame.sprite.spritecollideany(self, walls) or pygame.sprite.spritecollideany(self, furniture):
                 self.rect.y -= V / FPS
+            if pygame.sprite.spritecollideany(self, gates) and gate.kills:
+                pass
         if self.tp2 != self.tp1:
             if self.tp1 == 0:
                 self.cut_sheet(self.sheet_w, 5, 1)
@@ -339,7 +398,6 @@ class Mos(pygame.sprite.Sprite):
             self.image = self.images[0]
         if change:
             self.im_n += 1
-            print(self.im_n % 2)
             self.image = self.images[self.im_n % 2]
         self.rect.center = pos
 
@@ -399,8 +457,10 @@ class Board:
             Furniture(load_image('chair.png'), load_image('dresser.png'), load_image('table.png'), x, y)
 
 
+smokes = pygame.sprite.Group()
 clock = pygame.time.Clock()
 walls = pygame.sprite.Group()
+gates = pygame.sprite.Group()
 all_sprite = pygame.sprite.Group()
 cursor1 = pygame.sprite.Group()
 health = pygame.sprite.Group()
@@ -408,13 +468,13 @@ player = pygame.sprite.Group()
 furniture = pygame.sprite.Group()
 monsters = pygame.sprite.Group()
 board = Board()
+gate = Gates()
 gun = Gun()
 cur = Mos(cursor1, 500, 500)
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
 p.update(0, heal=True)
 z1 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 40, monsters, 240, 40, 880, 400)
-# z2 = AnimatedSpriteZombi(load_image("zombi.png"), 3, 1, 320, 140, all_sprite)
 
 running = True
 start_screen()
@@ -426,6 +486,8 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 gun.shot()
+                if not monsters:
+                    gates.update()
     pressed_k = pygame.key.get_pressed()
     if pressed_k[pygame.K_a]:
         player.update(1)
@@ -440,8 +502,11 @@ while running:
     all_sprite.draw(screen)
     walls.draw(screen)
     furniture.draw(screen)
+    gates.draw(screen)
     monsters.update()
     player.draw(screen)
+    smokes.update(p.rect.center)
+    smokes.draw(screen)
     monsters.draw(screen)
     cursor1.update(pygame.mouse.get_pos())
     cursor1.draw(screen)
