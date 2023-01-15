@@ -9,6 +9,17 @@ current_level = 'level1'
 
 size = width, height = W_WIDTH, W_HEIGHT
 screen = pygame.display.set_mode(size)
+smokes = pygame.sprite.Group()
+clock = pygame.time.Clock()
+walls = pygame.sprite.Group()
+gates = pygame.sprite.Group()
+all_sprite = pygame.sprite.Group()
+cursor1 = pygame.sprite.Group()
+health = pygame.sprite.Group()
+player = pygame.sprite.Group()
+furniture = pygame.sprite.Group()
+monsters = pygame.sprite.Group()
+blood = pygame.sprite.Group()
 
 
 def load_image(name, color_key=None):
@@ -124,7 +135,7 @@ class Furniture(pygame.sprite.Sprite):
         super().__init__(furniture)
         self.image = random.choice([image1, image2, image3])
         self.rect = self.image.get_rect()
-        self.hp = 5
+        self.hp = 2
         self.image = self.image.convert_alpha()
         self.rect = self.rect.move(x, y)
 
@@ -177,6 +188,13 @@ class Gun():
                 zomb.hp -= self.damage
                 cursor1.update(pygame.mouse.get_pos(), change=True)
                 self.shot_t = 0
+        furn = pygame.sprite.spritecollideany(cur, furniture)
+        if furn:
+            if ((furn.rect.center[1] - p.rect.center[1]) ** 2 + (
+                    furn.rect.center[0] - p.rect.center[0]) ** 2) ** 0.5 <= self.range and self.shot_t >= self.reload:
+                furn.hp -= 1
+            if furn.hp == 0:
+                furn.kill()
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
@@ -255,7 +273,8 @@ class AnimatedSprite(pygame.sprite.Sprite):
             if pygame.sprite.spritecollideany(self, walls) or pygame.sprite.spritecollideany(self, furniture):
                 self.rect.y -= V / FPS
             if pygame.sprite.spritecollideany(self, gates) and gate.kills:
-                pass
+                print(000)
+                start_screen()
         if self.tp2 != self.tp1:
             if self.tp1 == 0:
                 self.cut_sheet(self.sheet_w, 5, 1)
@@ -286,7 +305,7 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         self.y0 = tp[5]
         self.x1 = tp[6]
         self.y1 = tp[7]
-        self.hp = 4
+        self.hp = LEVEL_ZOMBIE_HP[current_level]
         self.frames = []
         self.sheet_w = sheet_w
         self.cut_sheet(sheet_w, tp[0], tp[1])
@@ -313,7 +332,7 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
                     frame_location, rect.size)))
 
     def update(self):
-        if self.hp == 0:
+        if self.hp <= 0:
             self.kill()
         # урон от соприкосновения
         rect_x, rect_y = p.coords()
@@ -436,7 +455,7 @@ class Blood(pygame.sprite.Sprite):
         else:
             self.kill()
 
- 
+
 class Mos(pygame.sprite.Sprite):
     image = load_image('crosshair.png')
     image_red = load_image('crosshair_red.png')
@@ -491,7 +510,7 @@ class Board:
     def __init__(self):  # параметры -- количество клеток по ширине и высоте
         self.width = 48
         self.height = 27
-        self.board = level1
+        self.board = LEVELS[current_level]
         self.left = 0  # x верхнего левого угла поля
         self.top = 0  # у левого верхнего угла
         self.cell_size = 40
@@ -516,40 +535,47 @@ class Board:
             x, y = random.choice(random_floors)
             Furniture(load_image('chair.png'), load_image('dresser.png'), load_image('table.png'), x, y)
 
+def load_level():
+    smokes.empty()
+    walls.empty()
+    gates.empty()
+    all_sprite.empty()
+    cursor1.empty()
+    health.empty()
+    player.empty()
+    furniture.empty()
+    monsters.empty()
+    blood.empty()
+    global board, gate, gun, cur, p
+    board = Board()
+    gate = Gates()
+    gun = Gun()
+    cur = Mos(cursor1, 500, 500)
+    board.render()
+    p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
+    for elem in ZOMBIE_COORDS[current_level]:
+        z = AnimatedSpriteZombi(load_image("zombi.png"), monsters, elem)
 
-smokes = pygame.sprite.Group()
-clock = pygame.time.Clock()
-walls = pygame.sprite.Group()
-gates = pygame.sprite.Group()
-all_sprite = pygame.sprite.Group()
-cursor1 = pygame.sprite.Group()
-health = pygame.sprite.Group()
-player = pygame.sprite.Group()
-furniture = pygame.sprite.Group()
-monsters = pygame.sprite.Group()
-blood = pygame.sprite.Group()
-board = Board()
-gate = Gates()
-gun = Gun()
-cur = Mos(cursor1, 500, 500)
-board.render()
-p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
-for elem in level1_zombi:
-    z = AnimatedSpriteZombi(load_image("zombi.png"), monsters, elem)
-p.update(0, heal=True)
 
 running = True
 start_screen()
+load_level()
+p.update(0, heal=True)
 pygame.mouse.set_visible(False)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 3 and gate.kills and ((gate.rect.center[1] - p.rect.center[1]) ** 2 + (
+                    gate.rect.center[0] - p.rect.center[0]) ** 2) ** 0.5 <= 80:
+                if int(current_level[-1]) < 2:
+                    current_level = current_level[:-1] + str(int(current_level[-1]) + 1)
+                load_level()
             if event.button == 1:
                 gun.shot()
-                if not monsters:
-                    gates.update()
+        if not monsters:
+            gates.update()
     pressed_k = pygame.key.get_pressed()
     if pressed_k[pygame.K_a]:
         player.update(1)
