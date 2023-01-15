@@ -316,10 +316,11 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         if self.hp == 0:
             self.kill()
         # урон от соприкосновения
-        if pygame.sprite.collide_mask(self, p):
+        rect_x, rect_y = p.coords()
+        if abs(self.rect.x - rect_x) <= 10 and abs(self.rect.y - rect_y) <= 10:
+            self.attack(self.right, self.rect, p.rect.centerx - 50, p.rect.centery - 12)
             p.hp -= 1
             p.update(0, heal=True)
-        rect_x, rect_y = p.coords()
         self.view += 1
         if self.view % 10 == 0:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
@@ -406,12 +407,36 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
                         self.right = False
                     self.rect.x -= 1
 
+    def attack(self, dir, z_rect, p_x, p_y):
+        p.hp -= 1
+        Blood(load_image('blood.png', -1), dir, z_rect, p_x, p_y)
+
 
 def terminate():
     pygame.quit()
     sys.exit()
 
 
+class Blood(pygame.sprite.Sprite):
+    def __init__(self, image, dir, z_rect, x, y):
+        super().__init__(blood)
+        self.image = image
+        self.dir = dir
+        self.z_rect = z_rect
+        self.x = x
+        self.y = y
+        self.count = 0
+        self.image = self.image.convert()
+        self.rect = self.image.get_rect()
+        self.rect = self.rect.move(self.x, self.y)
+
+    def update(self):
+        if self.count < 2:
+            pass
+        else:
+            self.kill()
+
+ 
 class Mos(pygame.sprite.Sprite):
     image = load_image('crosshair.png')
     image_red = load_image('crosshair_red.png')
@@ -502,6 +527,7 @@ health = pygame.sprite.Group()
 player = pygame.sprite.Group()
 furniture = pygame.sprite.Group()
 monsters = pygame.sprite.Group()
+blood = pygame.sprite.Group()
 board = Board()
 gate = Gates()
 gun = Gun()
@@ -543,6 +569,8 @@ while running:
     player.draw(screen)
     smokes.update(p.rect.center)
     smokes.draw(screen)
+    blood.draw(screen)
+    blood.update()
     monsters.draw(screen)
     cursor1.update(pygame.mouse.get_pos())
     cursor1.draw(screen)
