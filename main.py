@@ -337,7 +337,7 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         # урон от соприкосновения
         rect_x, rect_y = p.coords()
         if abs(self.rect.x - rect_x) <= 10 and abs(self.rect.y - rect_y) <= 10:
-            self.attack(self.right, self.rect, p.rect.centerx - 50, p.rect.centery - 12)
+            self.attack(self.right, self.rect, p.rect.centerx - 20, p.rect.centery - 11)
             p.hp -= 1
             p.update(0, heal=True)
         self.view += 1
@@ -428,7 +428,8 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
 
     def attack(self, dir, z_rect, p_x, p_y):
         p.hp -= 1
-        Blood(load_image('blood.png', -1), dir, z_rect, p_x, p_y)
+        Blood(blood, dir, z_rect, p_x, p_y)
+        blood.draw(screen)
 
 
 def terminate():
@@ -437,9 +438,11 @@ def terminate():
 
 
 class Blood(pygame.sprite.Sprite):
-    def __init__(self, image, dir, z_rect, x, y):
-        super().__init__(blood)
-        self.image = image
+    image = load_image('blood.png', -1)
+    
+    def __init__(self, group, dir, z_rect, x, y):
+        super().__init__(group)
+        self.image = Blood.image
         self.dir = dir
         self.z_rect = z_rect
         self.x = x
@@ -450,10 +453,7 @@ class Blood(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.x, self.y)
 
     def update(self):
-        if self.count < 2:
-            pass
-        else:
-            self.kill()
+        self.kill()
 
 
 class Mos(pygame.sprite.Sprite):
@@ -595,7 +595,6 @@ while running:
     player.draw(screen)
     smokes.update(p.rect.center)
     smokes.draw(screen)
-    blood.draw(screen)
     blood.update()
     monsters.draw(screen)
     cursor1.update(pygame.mouse.get_pos())
