@@ -325,51 +325,68 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = self.frames[self.cur_frame]
             self.image = self.image.convert_alpha()
+            if not self.right:
+                self.image = pygame.transform.flip(self.image, True, False)
         if not (self.x0 <= rect_x <= self.x1 and self.y0 <= rect_y <= self.y1):
             self.rect.x += self.speedx
             self.rect.y += self.speedy
             if pygame.sprite.spritecollideany(self, furniture):
                 self.count += 1
                 self.speedx = -self.speedx
+                if self.right:
+                    self.image = pygame.transform.flip(self.image, True, False)
+                    self.right = False
+                elif not self.right:
+                    self.image = pygame.transform.flip(self.image, True, False)
+                    self.right = True
                 if self.count > 1:
                     self.speedy = -self.speedy
                     self.speedx = -self.speedx
+                    if self.right:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.right = False
+                    elif not self.right:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.right = True
                     self.count = 0
             if self.rect.right >= self.x1:
+                if self.right:
+                    self.image = pygame.transform.flip(self.image, True, False)
+                    self.right = False
                 self.speedx -= 2
             if self.rect.left <= self.x0:
+                if not self.right:
+                    self.image = pygame.transform.flip(self.image, True, False)
+                    self.right = True
                 self.speedx += 2
             if self.rect.top >= self.y0:
                 self.speedy -= 2
             if self.rect.bottom <= self.y1:
                 self.speedy += 2
-            #     if pygame.sprite.spritecollideany(self, walls):
-            #         self.image = pygame.transform.flip(self.image, True, False)
-            #         self.rect.x -= 1
-            #         self.rect.y -= 1
-            # if self.right:
-            #     self.rect.x += V / FPS
-            # if not self.right:
-            #     self.rect.x -= V / FPS
-            #     if pygame.sprite.spritecollideany(self, walls):
-            #         self.image = pygame.transform.flip(self.image, True, False)
-            #         self.right = True
-            #         self.rect.x += V / FPS
-            # if pygame.sprite.spritecollideany(self, walls) and self.right:
-            #     self.image = pygame.transform.flip(self.image, True, False)
-            #     self.right = False
         else:
             if self.rect.x != rect_x and self.rect.y != rect_y:
                 if self.rect.x > rect_x and self.rect.y > rect_y:
+                    if self.right:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.right = False
                     self.rect.x -= 1
                     self.rect.y -= 1
                 elif self.rect.x < rect_x and self.rect.y < rect_y:
+                    if not self.right:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.right = True
                     self.rect.x += 1
                     self.rect.y += 1
                 elif self.rect.x < rect_x and self.rect.y > rect_y:
+                    if not self.right:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.right = True
                     self.rect.x += 1
                     self.rect.y -= 1
                 elif self.rect.x > rect_x and self.rect.y < rect_y:
+                    if self.right:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.right = False
                     self.rect.x -= 1
                     self.rect.y += 1
             elif self.rect.y != rect_y:
@@ -379,8 +396,14 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
                     self.rect.y -= 1
             elif self.rect.x != rect_x:
                 if self.rect.x < rect_x:
+                    if not self.right:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.right = True
                     self.rect.x += 1
                 elif self.rect.x > rect_x:
+                    if self.right:
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.right = False
                     self.rect.x -= 1
 
 
@@ -485,7 +508,7 @@ gun = Gun()
 cur = Mos(cursor1, 500, 500)
 board.render()
 p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
-for elem in level2_zombi:
+for elem in level1_zombi:
     z = AnimatedSpriteZombi(load_image("zombi.png"), monsters, elem)
 p.update(0, heal=True)
 
