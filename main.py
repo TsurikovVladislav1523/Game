@@ -121,6 +121,19 @@ class Save_im(pygame.sprite.Sprite):
         self.image = cur_image
 
 
+class Save_im_end(pygame.sprite.Sprite):
+    image1 = load_image('end_of_game.png')
+
+    def __init__(self, save):
+        super().__init__(save)
+        self.image = self.image1
+        self.rect = self.image.get_rect()
+        self.rect.center = (960, 300)
+
+    def update(self, cur_image):
+        self.image = cur_image
+
+
 class Health(pygame.sprite.Sprite):
     def __init__(self, image, x):
         super().__init__(health)
@@ -177,6 +190,15 @@ def start_screen():
             new.draw(screen)
             pygame.display.flip()
             clock.tick(FPS)
+
+
+def end_screen():
+    global current_level
+    fon = pygame.transform.scale(load_image('end_of_game.png'), (W_WIDTH, W_HEIGHT))
+    screen.blit(fon, (0, 0))
+    save = pygame.sprite.Group()
+    new = pygame.sprite.Group()
+    save1 = Save_im_end(save)
 
 
 class Gun():
@@ -248,7 +270,8 @@ class AnimatedSprite(pygame.sprite.Sprite):
         hp_x = 1072
         if heal:
             if self.hp <= 0:
-                load_level()
+                end_screen()
+                #load_level()
                 return None
             health.empty()
             for i in range(8):
