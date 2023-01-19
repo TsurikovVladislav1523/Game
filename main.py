@@ -5,7 +5,7 @@ import os
 import sys
 from config import *
 
-current_level = 'level1'
+current_level = 'level2'
 size = width, height = W_WIDTH, W_HEIGHT
 screen = pygame.display.set_mode(size)
 smokes = pygame.sprite.Group()
@@ -120,10 +120,6 @@ class Save_im(pygame.sprite.Sprite):
     def update(self, cur_image):
         self.image = cur_image
 
-
-class Save_im_end(pygame.sprite.Sprite):
-    image1 = load_image('end_of_game.png')
-
     def __init__(self, save):
         super().__init__(save)
         self.image = self.image1
@@ -173,7 +169,7 @@ def start_screen():
                     f.close()
                     return None
                 elif new1.rect.collidepoint(pygame.mouse.get_pos()):
-                    current_level = 'level1'
+                    current_level = 'level2'
                     f = open("input.txt", mode="w")
                     print(f, current_level)
                     f.close()
@@ -193,12 +189,16 @@ def start_screen():
 
 
 def end_screen():
-    global current_level
     fon = pygame.transform.scale(load_image('end_of_game.png'), (W_WIDTH, W_HEIGHT))
     screen.blit(fon, (0, 0))
-    save = pygame.sprite.Group()
-    new = pygame.sprite.Group()
-    save1 = Save_im_end(save)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == 1025 or event.type == pygame.KEYDOWN:
+                return None
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 class Gun():
@@ -271,7 +271,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
         if heal:
             if self.hp <= 0:
                 end_screen()
-                #load_level()
+                load_level()
                 return None
             health.empty()
             for i in range(8):
@@ -280,7 +280,6 @@ class AnimatedSprite(pygame.sprite.Sprite):
                     Health(load_image('hpmin.png'), hp_x)
                 else:
                     Health(load_image('hpplus.png'), hp_x)
-
         self.tp2 = self.tp1
         self.view += 1
         if self.view % 10 == 0:
