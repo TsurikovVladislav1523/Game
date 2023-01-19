@@ -8,7 +8,7 @@ RECT_Y = 0
 HP = {'level1': 2,
       'level2': 4,
       'level3': 6}
-LEVEL_DAMAGE = {'level1': 1,
+LEVEL_DAMAGE = {'level1': 100,
                 'level2': 2,
                 'level3': 0.001}
 LEVEL_ZOMBIE_HP = {'level1': 3,

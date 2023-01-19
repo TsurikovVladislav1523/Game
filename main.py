@@ -5,7 +5,8 @@ import os
 import sys
 from config import *
 
-current_level = 'level2'
+pygame.init()
+current_level = 'level1'
 size = width, height = W_WIDTH, W_HEIGHT
 screen = pygame.display.set_mode(size)
 smokes = pygame.sprite.Group()
@@ -120,6 +121,10 @@ class Save_im(pygame.sprite.Sprite):
     def update(self, cur_image):
         self.image = cur_image
 
+
+class Save_im_end(pygame.sprite.Sprite):
+    image1 = load_image('end_of_game.png')
+
     def __init__(self, save):
         super().__init__(save)
         self.image = self.image1
@@ -151,6 +156,8 @@ class Furniture(pygame.sprite.Sprite):
 
 def start_screen():
     global current_level
+    pygame.mixer.music.load('music/menutheme.mp3')
+    pygame.mixer.music.play()
     fon = pygame.transform.scale(load_image('logo.png'), (W_WIDTH, W_HEIGHT))
     screen.blit(fon, (0, 0))
     save = pygame.sprite.Group()
@@ -169,7 +176,7 @@ def start_screen():
                     f.close()
                     return None
                 elif new1.rect.collidepoint(pygame.mouse.get_pos()):
-                    current_level = 'level2'
+                    current_level = 'level1'
                     f = open("input.txt", mode="w")
                     print(f, current_level)
                     f.close()
@@ -280,6 +287,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
                     Health(load_image('hpmin.png'), hp_x)
                 else:
                     Health(load_image('hpplus.png'), hp_x)
+
         self.tp2 = self.tp1
         self.view += 1
         if self.view % 10 == 0:
@@ -643,6 +651,7 @@ def load_level():
 
 running = True
 start_screen()
+pygame.mixer.music.stop()
 load_level()
 p.update(0, heal=True)
 pygame.mouse.set_visible(False)
