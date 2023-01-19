@@ -21,6 +21,7 @@ furniture = pygame.sprite.Group()
 monsters = pygame.sprite.Group()
 blood = pygame.sprite.Group()
 boss = pygame.sprite.Group()
+quit = pygame.sprite.Group()
 
 
 def load_image(name, color_key=None):
@@ -46,8 +47,7 @@ class Gates(pygame.sprite.Sprite):
         self.kills = False
         self.rect = self.image.get_rect()
         self.image = self.image.convert_alpha()
-        self.rect = self.rect.move(1800, 5)
-        # self.rect = self.rect.move(LEVEL_GATES[current_level])
+        self.rect = self.rect.move(LEVEL_GATES[current_level])
 
     def update(self):
         self.kills = True
@@ -198,6 +198,16 @@ class Gun():
                 furn.kill()
 
 
+class Esc(pygame.sprite.Sprite):
+    image = load_image('esc.png')
+
+    def __init__(self, quiq):
+        super().__init__(quiq)
+        self.image = self.image
+        self.rect = self.image.get_rect()
+        self.rect.center = (1900, 20)
+
+
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet_w, sheet_d, sheet_u, columns, rows, x, y):
         super().__init__(player)
@@ -215,7 +225,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.rect = pygame.Rect(0, 0, 30, 38)
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.rect.move(x, y)
-        self.hp = 2
+        self.hp = HP[current_level]
 
     def cut_sheet(self, sheet, columns, rows):
         self.frames.clear()
@@ -230,6 +240,9 @@ class AnimatedSprite(pygame.sprite.Sprite):
     def update(self, arg, heal=False):
         hp_x = 1072
         if heal:
+            if self.hp <= 0:
+                load_level()
+                return None
             health.empty()
             for i in range(8):
                 hp_x += 40
@@ -576,6 +589,7 @@ def load_level():
     all_sprite.empty()
     cursor1.empty()
     health.empty()
+    quit.empty()
     player.empty()
     furniture.empty()
     monsters.empty()
@@ -587,7 +601,9 @@ def load_level():
     gun = Gun()
     cur = Mos(cursor1, 500, 500)
     board.render()
+    q = Esc(quit)
     p = AnimatedSprite(load_image("walk.png"), load_image("down.png"), load_image("up1.png"), 5, 1, 100, 100)
+    p.update(0, heal=True)
     for elem in ZOMBIE_COORDS[current_level]:
         if current_level == 'level3':
             z = AnimatedSpriteZombi(load_image("boss_pered.png"), load_image('boss_zad.png'), load_image('boss_bok.png'), boss, elem)
@@ -613,6 +629,8 @@ while running:
                 load_level()
             if event.button == 1:
                 gun.shot()
+                if pygame.sprite.spritecollideany(cur, quit):
+                    terminate()
         if not monsters:
             gates.update()
     pressed_k = pygame.key.get_pressed()
@@ -641,6 +659,7 @@ while running:
     cursor1.update(pygame.mouse.get_pos())
     cursor1.draw(screen)
     health.draw(screen)
+    quit.draw(screen)
     clock.tick(FPS)
     pygame.display.flip()
 

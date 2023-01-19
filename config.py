@@ -10,7 +10,7 @@ HP = {'level1': 2,
       'level3': 6}
 LEVEL_DAMAGE = {'level1': 1,
                 'level2': 2,
-                'level3': 5}
+                'level3': 0.001}
 LEVEL_ZOMBIE_HP = {'level1': 3,
                    'level2': 8,
                    'level3': 12}
