@@ -5,8 +5,7 @@ import os
 import sys
 from config import *
 
-current_level = 'level3'
-
+current_level = 'level1'
 size = width, height = W_WIDTH, W_HEIGHT
 screen = pygame.display.set_mode(size)
 smokes = pygame.sprite.Group()
@@ -142,6 +141,7 @@ class Furniture(pygame.sprite.Sprite):
 
 
 def start_screen():
+    global current_level
     fon = pygame.transform.scale(load_image('logo.png'), (W_WIDTH, W_HEIGHT))
     screen.blit(fon, (0, 0))
     save = pygame.sprite.Group()
@@ -155,8 +155,15 @@ def start_screen():
                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if save1.rect.collidepoint(pygame.mouse.get_pos()):
+                    f = open("save.txt", mode="r")
+                    current_level = f.read()
+                    f.close()
                     return None
                 elif new1.rect.collidepoint(pygame.mouse.get_pos()):
+                    current_level = 'level1'
+                    f = open("input.txt", mode="w")
+                    print(f, current_level)
+                    f.close()
                     return None
             if save1.rect.collidepoint(pygame.mouse.get_pos()):
                 save.update(load_image('save_ch.png'))
@@ -606,10 +613,10 @@ def load_level():
     p.update(0, heal=True)
     for elem in ZOMBIE_COORDS[current_level]:
         if current_level == 'level3':
-            z = AnimatedSpriteZombi(load_image("boss_pered.png"), load_image('boss_zad.png'), load_image('boss_bok.png'), boss, elem)
+            z = AnimatedSpriteZombi(load_image("boss_pered.png"), load_image('boss_zad.png'),
+                                    load_image('boss_bok.png'), boss, elem)
         else:
             z = AnimatedSpriteZombi('None', 'None', load_image("zombi.png"), monsters, elem)
-
 
 
 running = True
@@ -624,12 +631,15 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 3 and gate.kills and ((gate.rect.center[1] - p.rect.center[1]) ** 2 + (
                     gate.rect.center[0] - p.rect.center[0]) ** 2) ** 0.5 <= 80:
-                if int(current_level[-1]) < 2:
+                if int(current_level[-1]) < 3:
                     current_level = current_level[:-1] + str(int(current_level[-1]) + 1)
                 load_level()
             if event.button == 1:
                 gun.shot()
                 if pygame.sprite.spritecollideany(cur, quit):
+                    f = open("save.txt", mode="w")
+                    f.write(current_level)
+                    f.close()
                     terminate()
         if not monsters:
             gates.update()
