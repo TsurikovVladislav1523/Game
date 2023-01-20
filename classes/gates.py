@@ -1,5 +1,6 @@
 from classes.help_f import *
 
+
 class Gates(pygame.sprite.Sprite):
     open = load_image('opendoor.png')
     close = load_image('closedoor.png')
