@@ -1,6 +1,8 @@
 from all_for_project.help_f import *
 import random
 from all_for_project.furniture import *
+from all_for_project.create_level import *
+
 
 class Wall(pygame.sprite.Sprite):
     image = load_image('wall1.png')
@@ -31,7 +33,7 @@ class Board:
     def __init__(self, current_level):  # параметры -- количество клеток по ширине и высоте
         self.width = 48
         self.height = 27
-        self.board = LEVELS[current_level]
+        self.board = create_level(current_level)
         self.left = 0  # x верхнего левого угла поля
         self.top = 0  # у левого верхнего угла
         self.cell_size = 40

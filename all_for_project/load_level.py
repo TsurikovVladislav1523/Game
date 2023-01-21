@@ -33,7 +33,7 @@ def load_level(smokes, walls, gates, all_sprite, cursor1, health, player, furnit
              current_level)
     p.update(0, smokes, walls, gates, all_sprite, cursor1, health, player, furniture, monsters, boss,
              current_level,
-             quits, clock, heal=False)
+             quits, clock, heal=True)
     gun = Gun(current_level)
     for elem in ZOMBIE_COORDS[current_level]:
         if current_level == 'level3':
