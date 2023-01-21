@@ -1,4 +1,4 @@
-from classes.help_f import *
+from all_for_project.help_f import *
 
 blood = pygame.sprite.Group()
 
@@ -63,7 +63,8 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, rect.size)))
 
-    def update(self, p, current_level, furniture, screen):
+    def update(self, p, current_level, furniture, screen, clock, health, walls, smokes, gates, all_sprite, cursor1,
+               player, monsters, boss, quits):
         if self.hp <= 0:
             self.kill()
         # урон от соприкосновения
@@ -71,7 +72,9 @@ class AnimatedSpriteZombi(pygame.sprite.Sprite):
         if abs(self.rect.x - rect_x) <= 10 and abs(self.rect.y - rect_y) <= 10:
             self.attack(self.right, self.rect, p.rect.centerx - 20, p.rect.centery - 11, p, current_level, screen)
             p.hp -= 1
-            p.update(0, heal=True)
+            p.update(0, smokes, walls, gates, all_sprite, cursor1, health, player, furniture, monsters, boss,
+                     current_level,
+                     quits, clock, heal=True)
         self.view += 1
         if self.view % 10 == 0:
             if current_level == 'level3':

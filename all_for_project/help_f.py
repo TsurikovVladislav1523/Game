@@ -2,9 +2,11 @@ import pygame
 import sys
 import os
 from config import *
+
 size = width, height = W_WIDTH, W_HEIGHT
 size = width, height = W_WIDTH, W_HEIGHT
 screen = pygame.display.set_mode(size)
+
 
 def terminate():
     pygame.quit()

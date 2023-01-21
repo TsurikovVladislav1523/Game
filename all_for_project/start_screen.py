@@ -1,4 +1,5 @@
-from classes.help_f import *
+from all_for_project.help_f import *
+
 
 f = open("save.txt", mode="r")
 current_level = f.read()

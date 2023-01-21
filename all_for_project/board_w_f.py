@@ -1,6 +1,6 @@
-from classes.help_f import *
+from all_for_project.help_f import *
 import random
-from classes.furniture import *
+from all_for_project.furniture import *
 
 class Wall(pygame.sprite.Sprite):
     image = load_image('wall1.png')

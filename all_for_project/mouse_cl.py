@@ -1,4 +1,4 @@
-from classes.help_f import *
+from all_for_project.help_f import *
 
 class Mos(pygame.sprite.Sprite):
     image = load_image('crosshair.png')

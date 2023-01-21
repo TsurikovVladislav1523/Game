@@ -2,7 +2,7 @@ W_WIDTH = 1920
 W_HEIGHT = 1080
 FPS = 60
 V = 120
-ASSETS_DIR = 'classes/data'
+ASSETS_DIR = 'all_for_project/data'
 RECT_X = 0
 RECT_Y = 0
 HP = {'level1': 2,
@@ -11,6 +11,9 @@ HP = {'level1': 2,
 LEVEL_DAMAGE = {'level1': 100,
                 'level2': 2,
                 'level3': 0.001}
+LEVEL_DAMAGE_P = {'level1': 100,
+                  'level2': 2,
+                  'level3': 2}
 LEVEL_ZOMBIE_HP = {'level1': 3,
                    'level2': 8,
                    'level3': 12}
